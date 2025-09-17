@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Lab Interactive Schedule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2d5530;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d8a6a 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.4);
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #6ba777 0%, #7eb386 100%);
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.3);
+        }
+
+        .nav-button.closed {
+            background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+            cursor: not-allowed;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .day-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+            position: relative;
+            z-index: 1;
+        }
+
+        .day-content.active {
+            display: block;
+            z-index: 10;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-header {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d8a6a 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .day-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .day-info {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .group-section {
+            padding: 30px;
+        }
+
+        .group-header {
+            background: #f8fcf8;
+            border-left: 4px solid #4a7c59;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .group-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d5530;
+            margin-bottom: 5px;
+        }
+
+        .group-time {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .student-card {
+            background: linear-gradient(135deg, #6ba777 0%, #7eb386 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .student-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .student-number {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 15px;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .student-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .closed-day {
+            padding: 60px 30px;
+            text-align: center;
+            color: #666;
+        }
+
+        .closed-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .closed-message {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .project-slot {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .stats-summary {
+            background: #f8fcf8;
+            padding: 20px;
+            border-top: 1px solid #e8f5e8;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            color: #2d5530;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .nav-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .day-title {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .nav-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍎 Apple Lab Interactive Schedule</h1>
+            <p>Click on any day to view the assigned students and their access times</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <button class="nav-button active" onclick="showDay('monday')">Monday</button>
+                <button class="nav-button" onclick="showDay('tuesday')">Tuesday</button>
+                <button class="nav-button" onclick="showDay('wednesday')">Wednesday</button>
+                <button class="nav-button" onclick="showDay('thursday')">Thursday</button>
+                <button class="nav-button closed" onclick="showDay('friday')">Friday</button>
+                <button class="nav-button" onclick="showDay('saturday')">Saturday</button>
+                <button class="nav-button" onclick="showDay('sunday')">Sunday</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Monday Content -->
+            <div id="monday" class="day-content active">
+                <div class="day-header">
+                    <div class="day-title">MONDAY</div>
+                    <div class="day-info">Group A - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP A</div>
+                        <div class="group-time">Access Time: 5:00 PM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">1</div>
+                            <div class="student-name">UWASE TETA Paola</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">2</div>
+                            <div class="student-name">BUGINGO Eric Derick</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">3</div>
+                            <div class="student-name">Bienvenue Allaince Dieu d'Amour</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">4</div>
+                            <div class="student-name">HITAYEZU Frank Duff</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">5</div>
+                            <div class="student-name">BYIRINGIRO Samuel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">6</div>
+                            <div class="student-name">TUYUBAHE Edouard</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">7</div>
+                            <div class="student-name">RUKUNDO BAHATI Samuel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">8</div>
+                            <div class="student-name">Alain Kwishima</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">9</div>
+                            <div class="student-name">NTWALI DAVID - Y3B</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">10</div>
+                            <div class="student-name">UWASE UTUJE Sandrine</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">A</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tuesday Content -->
+            <div id="tuesday" class="day-content">
+                <div class="day-header">
+                    <div class="day-title">TUESDAY</div>
+                    <div class="day-info">Group A - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP A</div>
+                        <div class="group-time">Access Time: 5:00 PM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">1</div>
+                            <div class="student-name">UWASE TETA Paola</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">2</div>
+                            <div class="student-name">BUGINGO Eric Derick</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">3</div>
+                            <div class="student-name">Bienvenue Allaince Dieu d'Amour</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">4</div>
+                            <div class="student-name">HITAYEZU Frank Duff</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">5</div>
+                            <div class="student-name">BYIRINGIRO Samuel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">6</div>
+                            <div class="student-name">TUYUBAHE Edouard</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">7</div>
+                            <div class="student-name">RUKUNDO BAHATI Samuel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">8</div>
+                            <div class="student-name">Alain Kwishima</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">9</div>
+                            <div class="student-name">NTWALI DAVID - Y3B</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">10</div>
+                            <div class="student-name">UWASE UTUJE Sandrine</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">A</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wednesday Content -->
+            <div id="wednesday" class="day-content">
+                <div class="day-header">
+                    <div class="day-title">WEDNESDAY</div>
+                    <div class="day-info">Group B - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP B</div>
+                        <div class="group-time">Access Time: 5:00 PM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">11</div>
+                            <div class="student-name">dushimire aine</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">12</div>
+                            <div class="student-name">TETA Angel Bless</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">13</div>
+                            <div class="student-name">MUNEZA Jean Dieudonne</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">14</div>
+                            <div class="student-name">SEWASE Angel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">15</div>
+                            <div class="student-name">Uwonkunda Mahinga Rodin</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">16</div>
+                            <div class="student-name">IRADUKUNDA Joyeuse</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">17</div>
+                            <div class="student-name">Mugisha Prosper</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">18</div>
+                            <div class="student-name">BIZIMANA ISINGIZWE Christian</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">19</div>
+                            <div class="student-name">kagabo irene lucky</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">20</div>
+                            <div class="student-name">Nyumbayire Laurent</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">B</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thursday Content -->
+            <div id="thursday" class="day-content">
+                <div class="day-header">
+                    <div class="day-title">THURSDAY</div>
+                    <div class="day-info">Group B - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP B</div>
+                        <div class="group-time">Access Time: 5:00 PM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">11</div>
+                            <div class="student-name">dushimire aine</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">12</div>
+                            <div class="student-name">TETA Angel Bless</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">13</div>
+                            <div class="student-name">MUNEZA Jean Dieudonne</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">14</div>
+                            <div class="student-name">SEWASE Angel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">15</div>
+                            <div class="student-name">Uwonkunda Mahinga Rodin</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">16</div>
+                            <div class="student-name">IRADUKUNDA Joyeuse</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">17</div>
+                            <div class="student-name">Mugisha Prosper</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">18</div>
+                            <div class="student-name">BIZIMANA ISINGIZWE Christian</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">19</div>
+                            <div class="student-name">kagabo irene lucky</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">20</div>
+                            <div class="student-name">Nyumbayire Laurent</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">B</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friday Content -->
+            <div id="friday" class="day-content">
+                <div class="day-header" style="background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);">
+                    <div class="day-title">FRIDAY</div>
+                    <div class="day-info">Apple Lab Closed</div>
+                </div>
+                <div class="closed-day">
+                    <div class="closed-icon">🔒</div>
+                    <div class="closed-message">Apple Lab is closed on Fridays</div>
+                </div>
+            </div>
+
+            <!-- Saturday Content -->
+            <div id="saturday" class="day-content">
+                <div class="day-header">
+                    <div class="day-title">SATURDAY</div>
+                    <div class="day-info">Group D - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP D</div>
+                        <div class="group-time">Access Time: 5:00 PM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">21</div>
+                            <div class="student-name">Mushimiyimana Henriette</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">22</div>
+                            <div class="student-name">Forgiveness Peace Love</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">23</div>
+                            <div class="student-name">BYIRINGIRO ALOYS</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">24</div>
+                            <div class="student-name">ABAYO Moise</div>
+                        </div>
+                        <div class="student-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+                            <div class="student-number">25</div>
+                            <div class="student-name">IZERE Joshua 👨‍💻 (Lab Manager)</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">26</div>
+                            <div class="student-name">Darius NIYONKURU</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">27</div>
+                            <div class="student-name">Twarimitswe Aaron</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">28</div>
+                            <div class="student-name">Byukusenge Andrew</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">29</div>
+                            <div class="student-name">IRASUBIZA SALY NELSON</div>
+                        </div>
+                    </div>
+                    <div class="project-slot">
+                        <div style="font-size: 1.1rem; margin-bottom: 5px;">🛠️ Projects & Additional Work</div>
+                        <div>9:00 PM - 10:00 PM | Available for overflow and special projects</div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">9</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">D</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">Project Hour</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sunday Content -->
+            <div id="sunday" class="day-content">
+                <div class="day-header">
+                    <div class="day-title">SUNDAY</div>
+                    <div class="day-info">Group C - iOS Development Session</div>
+                </div>
+                <div class="group-section">
+                    <div class="group-header">
+                        <div class="group-title">GROUP C</div>
+                        <div class="group-time">Access Time: 7:00 AM - 10:00 PM</div>
+                    </div>
+                    <div class="students-grid">
+                        <div class="student-card">
+                            <div class="student-number">30</div>
+                            <div class="student-name">IZABAYO Nadine</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">31</div>
+                            <div class="student-name">Mugisha Ineza Nora</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">32</div>
+                            <div class="student-name">Kayiranga Simbi Kelia</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">33</div>
+                            <div class="student-name">ARISANGA Roger</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">34</div>
+                            <div class="student-name">ISHIMWE Aman Samuel</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">35</div>
+                            <div class="student-name">MUGISHA Ivan Bright</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">36</div>
+                            <div class="student-name">UMURERWA Bonnette</div>
+                        </div>
+                        <div class="student-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+                            <div class="student-number">37</div>
+                            <div class="student-name">UWUMUGISHA Heloise 👩‍💻 (Lab Manager)</div>
+                        </div>
+                        <div class="student-card">
+                            <div class="student-number">38</div>
+                            <div class="student-name">ZIGIRUMUGABE Louis Miguel</div>
+                        </div>
+                                  <div class="student-card">
+                            <div class="student-number">39</div>
+                            <div class="student-name">Cyizere Happy</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-number">9</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">15</div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">C</div>
+                        <div class="stat-label">Group</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDay(dayId) {
+            // Hide all day contents
+            const dayContents = document.querySelectorAll('.day-content');
+            dayContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected day content
+            document.getElementById(dayId).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Prevent clicking on Friday but still allow showing content
+        document.addEventListener('DOMContentLoaded', function() {
+            const fridayButton = document.querySelector('button[onclick="showDay(\'friday\')"]');
+            fridayButton.addEventListener('click', function(e) {
+                if (this.classList.contains('closed')) {
+                    // Still allow showing Friday content to display closed message
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
